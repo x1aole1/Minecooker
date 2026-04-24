@@ -39,7 +39,7 @@ class BotManager {
       logger.info('Bot spawned.');
       this.bot.pathfinder.setMovements(new Movements(this.bot));
       await this.runLoginCommands();
-      await this.installModules();
+      this.installModules();
       this.initQueue();
       this.startScheduledCommands();
       this.queue.run(this).catch((err) => logger.error('队列异常', err));
@@ -52,7 +52,7 @@ class BotManager {
     this.bot.on('death', () => this.handleDeath());
   }
 
-  async installModules() {
+  installModules() {
     this.modules.storage = new StorageModule(this.bot, this.config, this);
     this.modules.survival = new SurvivalModule(this.bot, this.config, this);
     this.modules.combat = new CombatModule(this.bot, this.config, this);
@@ -62,13 +62,7 @@ class BotManager {
     this.modules.trading = new TradingModule(this.bot, this.config, this);
     this.modules.command = new CommandModule(this.bot, this.config, this);
 
-    for (const module of Object.values(this.modules)) {
-      try {
-        await module.init?.();
-      } catch (error) {
-        logger.error(`模块初始化失败: ${module.constructor.name}`, error.message);
-      }
-    }
+    Object.values(this.modules).forEach((m) => m.init?.());
   }
 
   initQueue() {

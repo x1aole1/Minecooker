@@ -10,8 +10,8 @@ class StorageModule {
     this.chestCache = new Map();
   }
 
-  async init() {
-    await this.scanChestsBySigns();
+  init() {
+    this.scanChestsBySigns();
   }
 
   createCleanupTask() {
@@ -27,7 +27,7 @@ class StorageModule {
     };
   }
 
-  async scanChestsBySigns() {
+  scanChestsBySigns() {
     const radius = this.config.storage.chestSearchRadius;
     const center = this.bot.entity.position.floored();
     for (let x = -radius; x <= radius; x++) {
@@ -37,36 +37,14 @@ class StorageModule {
           const block = this.bot.blockAt(pos);
           if (!block) continue;
           if (!block.name.includes('sign')) continue;
-          const text = await this.getSignText(block);
+          const sign = this.bot.sign(block);
+          const text = sign?.text || '';
           const chestBlock = this.findNeighborChest(pos);
           if (chestBlock) this.chestCache.set(text.trim(), chestBlock.position);
         }
       }
     }
     logger.info('箱子识别完成，数量:', this.chestCache.size);
-  }
-
-
-  async getSignText(block) {
-    try {
-      if (!block || !block.name.includes('sign')) return '';
-      if (typeof this.bot.sign === 'function') {
-        const sign = this.bot.sign(block);
-        if (sign?.text) return sign.text;
-      }
-
-      if (typeof block.getSignText === 'function') {
-        const text = await block.getSignText();
-        if (text) return text;
-      }
-
-      if (typeof block.signText === 'string' && block.signText.length > 0) {
-        return block.signText;
-      }
-    } catch (error) {
-      logger.warn('读取告示牌文本失败', error.message);
-    }
-    return '';
   }
 
   findNeighborChest(pos) {
