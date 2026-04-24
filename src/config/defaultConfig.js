@@ -17,8 +17,7 @@ module.exports = {
     ],
     scheduledCommands: [
       { cronMs: 1000 * 60 * 20, command: '/home' }
-    ],
-    spawnReadyDelayMs: 4000
+    ]
   },
   safety: {
     hungerThreshold: 12,
@@ -59,8 +58,6 @@ module.exports = {
       food: ['bread', 'cooked_beef', 'cooked_porkchop'],
       books: ['enchanted_book']
     },
-    scanRetries: 5,
-    scanIntervalMs: 2000,
     signChestMap: {
       ores: '矿物箱',
       food: '食物箱',

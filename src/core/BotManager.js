@@ -2,7 +2,6 @@ const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals: { GoalBlock, GoalNear } } = require('mineflayer-pathfinder');
 const armorManager = require('mineflayer-armor-manager');
 const { plugin: pvp } = require('mineflayer-pvp');
-const signs = require('mineflayer-signs');
 const TaskQueue = require('./TaskQueue');
 const logger = require('../utils/logger');
 const { getLowValueFood } = require('../utils/inventory');
@@ -35,21 +34,12 @@ class BotManager {
     this.bot.loadPlugin(pathfinder);
     this.bot.loadPlugin(armorManager);
     this.bot.loadPlugin(pvp);
-    this.bot.loadPlugin(signs);
 
     this.bot.once('spawn', async () => {
       logger.info('Bot spawned.');
       this.bot.pathfinder.setMovements(new Movements(this.bot));
-
-      const delay = this.config.connection.spawnReadyDelayMs || 0;
-      if (delay > 0) {
-        logger.info(`等待出生稳定: ${delay}ms`);
-        await this.sleep(delay);
-      }
-
       await this.runLoginCommands();
-      await this.sleep(500);
-      await this.installModules();
+      this.installModules();
       this.initQueue();
       this.startScheduledCommands();
       this.queue.run(this).catch((err) => logger.error('队列异常', err));
@@ -62,7 +52,7 @@ class BotManager {
     this.bot.on('death', () => this.handleDeath());
   }
 
-  async installModules() {
+  installModules() {
     this.modules.storage = new StorageModule(this.bot, this.config, this);
     this.modules.survival = new SurvivalModule(this.bot, this.config, this);
     this.modules.combat = new CombatModule(this.bot, this.config, this);
@@ -72,13 +62,7 @@ class BotManager {
     this.modules.trading = new TradingModule(this.bot, this.config, this);
     this.modules.command = new CommandModule(this.bot, this.config, this);
 
-    for (const module of Object.values(this.modules)) {
-      try {
-        await module.init?.();
-      } catch (error) {
-        logger.error(`模块初始化失败: ${module.constructor.name}`, error.message);
-      }
-    }
+    Object.values(this.modules).forEach((m) => m.init?.());
   }
 
   initQueue() {
