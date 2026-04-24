@@ -10,8 +10,14 @@ class StorageModule {
     this.chestCache = new Map();
   }
 
-  init() {
-    this.scanChestsBySigns();
+  async init() {
+    const retries = this.config.storage.scanRetries || 1;
+    for (let i = 1; i <= retries; i++) {
+      await this.scanChestsBySigns();
+      if (this.chestCache.size > 0) return;
+      logger.warn(`未识别到告示牌箱子，准备重试 ${i}/${retries}`);
+      await this.manager.sleep(this.config.storage.scanIntervalMs || 1500);
+    }
   }
 
   createCleanupTask() {
@@ -27,7 +33,8 @@ class StorageModule {
     };
   }
 
-  scanChestsBySigns() {
+  async scanChestsBySigns() {
+    this.chestCache.clear();
     const radius = this.config.storage.chestSearchRadius;
     const center = this.bot.entity.position.floored();
     for (let x = -radius; x <= radius; x++) {
@@ -37,14 +44,37 @@ class StorageModule {
           const block = this.bot.blockAt(pos);
           if (!block) continue;
           if (!block.name.includes('sign')) continue;
-          const sign = this.bot.sign(block);
-          const text = sign?.text || '';
+          const text = await this.getSignText(block);
           const chestBlock = this.findNeighborChest(pos);
-          if (chestBlock) this.chestCache.set(text.trim(), chestBlock.position);
+          const key = text.trim();
+          if (key && chestBlock) this.chestCache.set(key, chestBlock.position);
         }
       }
     }
     logger.info('箱子识别完成，数量:', this.chestCache.size);
+  }
+
+
+  async getSignText(block) {
+    try {
+      if (!block || !block.name.includes('sign')) return '';
+      if (typeof this.bot.sign === 'function') {
+        const sign = this.bot.sign(block);
+        if (sign?.text) return sign.text;
+      }
+
+      if (typeof block.getSignText === 'function') {
+        const text = await block.getSignText();
+        if (text) return text;
+      }
+
+      if (typeof block.signText === 'string' && block.signText.length > 0) {
+        return block.signText;
+      }
+    } catch (error) {
+      logger.warn('读取告示牌文本失败', error.message);
+    }
+    return '';
   }
 
   findNeighborChest(pos) {

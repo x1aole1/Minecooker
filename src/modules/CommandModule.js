@@ -29,6 +29,9 @@ class CommandModule {
   exec(input, source) {
     const [cmd, ...args] = input.split(' ');
     switch (cmd) {
+      case 'start':
+        this.manager.startTasks();
+        return logger.info(`任务队列已启动 by ${source}`);
       case 'pause':
         this.manager.queue.pause();
         return logger.info(`队列已暂停 by ${source}`);
@@ -45,6 +48,8 @@ class CommandModule {
       case 'say':
         this.bot.chat(args.join(' '));
         return;
+      case 'help':
+        return logger.info('可用指令: start, pause, resume, task, goto x y z, say <msg>');
       default:
         logger.warn('未知指令:', input);
     }
