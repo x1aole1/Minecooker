@@ -1,0 +1,113 @@
+{
+  "connection": {
+    "host": "127.0.0.1",
+    "port": 25565,
+    "username": "MinecookerBot",
+    "auth": "offline",
+    "version": false,
+    "reconnect": {
+      "enabled": true,
+      "retries": 999,
+      "delayMs": 5000
+    },
+    "loginCommands": [
+      { "command": "/register 123456 123456", "delayMs": 3000 },
+      { "command": "/login 123456", "delayMs": 5000 }
+    ],
+    "scheduledCommands": [
+      { "cronMs": 1200000, "command": "/home" }
+    ],
+    "spawnReadyDelayMs": 4000
+  },
+  "safety": {
+    "hungerThreshold": 12,
+    "healthThreshold": 10,
+    "safePoint": { "x": 0, "y": 64, "z": 0 },
+    "antiAfk": {
+      "enabled": true,
+      "intervalMs": 25000,
+      "randomYaw": 0.2
+    }
+  },
+  "mining": {
+    "region": {
+      "min": { "x": 0, "y": 58, "z": 0 },
+      "max": { "x": 8, "y": 62, "z": 8 }
+    },
+    "includeBlocks": ["stone", "deepslate", "coal_ore", "iron_ore"],
+    "toolDurabilityMin": 20,
+    "tunnel": {
+      "width": 2,
+      "height": 3,
+      "warningDistance": 10,
+      "lightThreshold": 7,
+      "blacklistBlocks": ["rail", "torch", "ladder", "cobblestone", "stone"],
+      "orePriorityBlocks": [
+        "diamond_ore",
+        "deepslate_diamond_ore",
+        "emerald_ore",
+        "deepslate_emerald_ore",
+        "gold_ore",
+        "deepslate_gold_ore",
+        "iron_ore",
+        "deepslate_iron_ore",
+        "copper_ore",
+        "deepslate_copper_ore",
+        "redstone_ore",
+        "deepslate_redstone_ore",
+        "lapis_ore",
+        "deepslate_lapis_ore"
+      ],
+      "torchItem": "torch",
+      "stepDistance": 1,
+      "digRetryMs": 250
+    }
+  },
+  "farming": {
+    "region": {
+      "min": { "x": 10, "y": 63, "z": 10 },
+      "max": { "x": 20, "y": 65, "z": 20 }
+    },
+    "cropType": "wheat",
+    "seedItem": "wheat_seeds"
+  },
+  "fishing": {
+    "durationMs": 60000,
+    "intervalMs": 1000,
+    "loops": -1
+  },
+  "storage": {
+    "basePoint": { "x": 0, "y": 64, "z": 0 },
+    "chestSearchRadius": 16,
+    "rules": {
+      "ores": ["iron_ore", "coal", "raw_iron"],
+      "food": ["bread", "cooked_beef", "cooked_porkchop"],
+      "books": ["enchanted_book"]
+    },
+    "scanRetries": 5,
+    "scanIntervalMs": 2000,
+    "signChestMap": {
+      "ores": "矿物箱",
+      "food": "食物箱",
+      "books": "附魔书箱",
+      "tradeInput": "交易材料箱",
+      "tradeOutput": "交易产物箱"
+    }
+  },
+  "trading": {
+    "villagerName": null,
+    "villagerPosition": { "x": 5, "y": 64, "z": 5 },
+    "plans": [
+      { "item": "emerald", "tradeIndex": 0, "count": 16, "loops": 5 }
+    ]
+  },
+  "combat": {
+    "hostileMobNames": ["zombie", "skeleton", "creeper", "spider", "drowned", "witch"],
+    "ignoreEntityNames": ["villager", "armor_stand", "iron_golem"],
+    "engageDistance": 12
+  },
+  "queue": {
+    "autoResumeAfterDeath": true,
+    "chunkWaitTimeoutMs": 8000
+  }
+}
