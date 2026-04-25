@@ -2,7 +2,6 @@ const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals: { GoalBlock, GoalNear } } = require('mineflayer-pathfinder');
 const armorManager = require('mineflayer-armor-manager');
 const { plugin: pvp } = require('mineflayer-pvp');
-const signs = require('mineflayer-signs');
 const TaskQueue = require('./TaskQueue');
 const logger = require('../utils/logger');
 const { getLowValueFood } = require('../utils/inventory');
@@ -37,7 +36,6 @@ class BotManager {
     this.bot.loadPlugin(pathfinder);
     this.bot.loadPlugin(armorManager);
     this.bot.loadPlugin(pvp);
-    this.bot.loadPlugin(signs);
 
     this.bot.once('spawn', async () => {
       logger.info('Bot spawned.');

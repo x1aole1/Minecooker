@@ -58,23 +58,53 @@ class StorageModule {
   async getSignText(block) {
     try {
       if (!block || !block.name.includes('sign')) return '';
-      if (typeof this.bot.sign === 'function') {
-        const sign = this.bot.sign(block);
-        if (sign?.text) return sign.text;
+      const rawEntity = block.blockEntity || {};
+      const nbtRoot = rawEntity?.value || rawEntity;
+      const lineKeys = ['Text1', 'Text2', 'Text3', 'Text4', 'text1', 'text2', 'text3', 'text4'];
+      const lines = [];
+
+      for (const key of lineKeys) {
+        const raw = nbtRoot?.[key];
+        const line = this.parseSignLine(raw);
+        if (line) lines.push(line);
       }
 
-      if (typeof block.getSignText === 'function') {
-        const text = await block.getSignText();
-        if (text) return text;
-      }
-
-      if (typeof block.signText === 'string' && block.signText.length > 0) {
-        return block.signText;
-      }
+      return lines.join(' ').trim();
     } catch (error) {
       logger.warn('读取告示牌文本失败', error.message);
+      return '';
     }
-    return '';
+  }
+
+  parseSignLine(raw) {
+    if (raw == null) return '';
+
+    const unwrap = (value) => {
+      if (value == null) return '';
+      if (typeof value === 'string') return value;
+      if (typeof value === 'object') {
+        if (typeof value.value !== 'undefined') return unwrap(value.value);
+        if (typeof value.text === 'string') return value.text;
+      }
+      return String(value);
+    };
+
+    let text = unwrap(raw).trim();
+    if (!text) return '';
+
+    if (text.startsWith('{') && text.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(text);
+        if (typeof parsed?.text === 'string') return parsed.text.trim();
+      } catch (_) {
+        // keep raw string if not valid JSON text component
+      }
+    }
+
+    if (text.startsWith('"') && text.endsWith('"')) {
+      text = text.slice(1, -1);
+    }
+    return text.trim();
   }
 
   findNeighborChest(pos) {
