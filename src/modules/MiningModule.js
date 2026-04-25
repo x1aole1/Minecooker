@@ -1,4 +1,5 @@
 const { Vec3 } = require('vec3');
+const { Movements } = require('mineflayer-pathfinder');
 const logger = require('../utils/logger');
 const { hasFreeSlot, findItemByName } = require('../utils/inventory');
 
@@ -12,6 +13,9 @@ class MiningModule {
   }
 
   init() {
+    if (this.bot.pathfinder) {
+      this.bot.pathfinder.setMovements(new Movements(this.bot));
+    }
     this.bot.on('physicsTick', () => this.tickMine());
   }
 
@@ -100,6 +104,10 @@ class MiningModule {
 
     const targets = this.getTunnelTargetBlocks();
     const oreFirst = this.prioritizeTargets(targets);
+    if (oreFirst.length === 0) {
+      logger.debug('矿道前方未发现可挖目标方块');
+      return;
+    }
 
     for (const block of oreFirst) {
       if (!block || !this.bot.canDigBlock(block)) continue;
@@ -112,16 +120,20 @@ class MiningModule {
       }
 
       try {
-        const tool = this.bot.pathfinder.bestHarvestTool(block);
+        const tool = this.bot.pathfinder?.bestHarvestTool(block);
         if (tool) await this.bot.equip(tool, 'hand');
-        await this.bot.dig(block, true);
+        if (this.bot.collectBlock?.collect) {
+          await this.bot.collectBlock.collect(block, { ignoreNoPath: false, timeout: 15000 });
+        } else {
+          await this.bot.dig(block, true);
+        }
         this.lastDigAt = Date.now();
         await this.tryPlaceTorch();
         return;
       } catch (error) {
         this.stopMine('遇到无法挖掘方块');
         this.bot.chat(`挖掘失败(${block.name})，已停止挖矿`);
-        logger.warn('矿道挖掘异常', error.message);
+        logger.warn(`矿道挖掘异常(${block.name})`, error.message);
         return;
       }
     }

@@ -1,10 +1,10 @@
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals: { GoalBlock, GoalNear } } = require('mineflayer-pathfinder');
 const armorManager = require('mineflayer-armor-manager');
-const toolLib = require('mineflayer-tool');
+const toolPlugin = require('mineflayer-tool').plugin;
+const collectBlock = require('mineflayer-collectblock').plugin;
 const autoEatLib = require('mineflayer-auto-eat');
 const customPvpLib = require('@nxg-org/mineflayer-custom-pvp');
-const autoMineLib = require('@nxg-org/mineflayer-auto-mine');
 
 const TaskQueue = require('./TaskQueue');
 const logger = require('../utils/logger');
@@ -50,11 +50,11 @@ class BotManager {
 
   loadRuntimePlugins() {
     this.loadPluginIfPossible(pathfinder, 'pathfinder');
+    this.loadPluginIfPossible(toolPlugin, 'tool');
+    this.loadPluginIfPossible(collectBlock, 'collectblock');
     this.loadPluginIfPossible(armorManager, 'armor-manager');
-    this.loadPluginIfPossible(toolLib, 'tool');
     this.loadPluginIfPossible(autoEatLib, 'auto-eat');
     this.loadPluginIfPossible(customPvpLib, 'custom-pvp');
-    this.loadPluginIfPossible(autoMineLib, 'auto-mine');
   }
 
   createBot() {
