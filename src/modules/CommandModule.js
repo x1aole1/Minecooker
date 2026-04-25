@@ -21,8 +21,20 @@ class CommandModule {
   initChatCommands() {
     this.bot.on('chat', (username, message) => {
       if (username === this.bot.username) return;
-      if (!message.startsWith('!bot')) return;
-      this.exec(message.replace('!bot', '').trim(), username);
+
+      const plain = message.trim();
+      if (/^fight\s+me$/i.test(plain)) {
+        const ok = this.manager.modules.combat?.fightMe(username);
+        if (!ok) logger.warn(`未找到玩家目标: ${username}`);
+        return;
+      }
+      if (/^stop$/i.test(plain)) {
+        this.manager.modules.combat?.stopFight();
+        return;
+      }
+
+      if (!plain.startsWith('!bot')) return;
+      this.exec(plain.replace('!bot', '').trim(), username);
     });
   }
 
@@ -45,11 +57,28 @@ class CommandModule {
         this.manager.goto({ x, y, z }, 1).catch((err) => logger.warn(err.message));
         return;
       }
+      case 'startmine':
+        this.manager.modules.mining?.startMine();
+        this.manager.pveLock = false;
+        return logger.info(`矿道挖掘已启动 by ${source}`);
+      case 'stopmine':
+        this.manager.modules.mining?.stopMine('手动停止');
+        this.manager.modules.combat?.stopFight();
+        this.manager.pveLock = true;
+        return logger.info(`矿道挖掘已停止 by ${source}`);
+      case 'setmine': {
+        const [width, height] = args.map(Number);
+        if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+          return logger.warn('用法: setmine <宽> <高>');
+        }
+        this.manager.modules.mining?.setMineSize(width, height);
+        return;
+      }
       case 'say':
         this.bot.chat(args.join(' '));
         return;
       case 'help':
-        return logger.info('可用指令: start, pause, resume, task, goto x y z, say <msg>');
+        return logger.info('可用指令: start, pause, resume, task, goto x y z, startmine, stopmine, setmine <w> <h>, say <msg>');
       default:
         logger.warn('未知指令:', input);
     }

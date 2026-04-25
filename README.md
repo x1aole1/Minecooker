@@ -1,6 +1,6 @@
 # Minecooker
 
-基于 mineflayer 的模块化 Minecraft Bot。
+基于 mineflayer 的模块化 Minecraft Bot（1.21.1 矿道场景优先）。
 
 ## 启动
 
@@ -9,26 +9,34 @@ npm install
 npm start
 ```
 
-## 任务执行方式（已改为手动触发）
+## 配置文件
 
-Bot 进入游戏后**不会自动执行任务队列**，只会完成登录、插件加载与模块初始化。
+当前运行配置统一使用：`src/config/config.json`。
 
-需要你在控制台或游戏聊天中手动开始：
+> 这样修改服务器地址、账号、矿道参数时，不需要改 JS 代码逻辑文件。
 
-- 控制台输入：`start`
-- 游戏内聊天输入：`!bot start`
+## 任务执行方式（手动触发）
 
-## 常用控制命令
+Bot 进入游戏后不会自动跑任务队列，需要手动触发：
 
-- `start` / `!bot start`：启动任务队列（仅首次真正启动，重复输入安全）
-- `pause` / `!bot pause`：暂停队列
-- `resume` / `!bot resume`：恢复队列
-- `task` / `!bot task`：查看当前任务
-- `goto x y z` / `!bot goto x y z`：移动到坐标
-- `say <内容>` / `!bot say <内容>`：让 Bot 说话
-- `help` / `!bot help`：输出命令帮助
+- 控制台：`start`
+- 游戏聊天：`!bot start`
 
-## 说明
+## 矿道挖掘指令
 
-- 如果服务器出生点加载较慢，Bot 会在 `spawn` 后等待配置延迟与固定 500ms，再完成模块初始化。
-- 若网络中断，重连逻辑会按配置自动处理。
+- `!bot startmine`：启动/恢复矿道挖掘，同时激活 PVE 警戒
+- `!bot stopmine`：停止矿道挖掘，同时锁定 PVE 自动追击
+- `!bot setmine <宽> <高>`：动态设置矿道尺寸（默认 2x3）
+
+## 保留的战斗指令
+
+- 聊天输入 `fight me`：与发送者进入战斗逻辑
+- 聊天输入 `stop`：停止战斗逻辑
+
+## 其他常用命令
+
+- `!bot pause` / `!bot resume`
+- `!bot task`
+- `!bot goto x y z`
+- `!bot say <内容>`
+- `!bot help`

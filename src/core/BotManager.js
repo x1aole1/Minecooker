@@ -1,6 +1,11 @@
 const mineflayer = require('mineflayer');
 const { pathfinder, Movements, goals: { GoalBlock, GoalNear } } = require('mineflayer-pathfinder');
 const armorManager = require('mineflayer-armor-manager');
+const toolLib = require('mineflayer-tool');
+const autoEatLib = require('mineflayer-auto-eat');
+const customPvpLib = require('@nxg-org/mineflayer-custom-pvp');
+const autoMineLib = require('@nxg-org/mineflayer-auto-mine');
+
 const TaskQueue = require('./TaskQueue');
 const logger = require('../utils/logger');
 const { getLowValueFood } = require('../utils/inventory');
@@ -24,20 +29,41 @@ class BotManager {
     this.scheduledTimers = [];
     this.queueRunnerStarted = false;
     this.tasksInitialized = false;
+
+    this.isMining = false;
+    this.fightTarget = null;
+    this.pveLock = false;
   }
 
   sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  loadPluginIfPossible(pluginRef, label) {
+    const plugin = pluginRef?.plugin || pluginRef?.loader || pluginRef;
+    if (typeof plugin !== 'function') {
+      logger.warn(`插件未加载(${label}): 非函数导出`);
+      return;
+    }
+    this.bot.loadPlugin(plugin);
+  }
+
+  loadRuntimePlugins() {
+    this.loadPluginIfPossible(pathfinder, 'pathfinder');
+    this.loadPluginIfPossible(armorManager, 'armor-manager');
+    this.loadPluginIfPossible(toolLib, 'tool');
+    this.loadPluginIfPossible(autoEatLib, 'auto-eat');
+    this.loadPluginIfPossible(customPvpLib, 'custom-pvp');
+    this.loadPluginIfPossible(autoMineLib, 'auto-mine');
+  }
+
   createBot() {
     this.bot = mineflayer.createBot(this.config.connection);
-    this.bot.loadPlugin(pathfinder);
-    this.bot.loadPlugin(armorManager);
 
     this.bot.once('spawn', async () => {
       logger.info('Bot spawned.');
-      this.bot.pathfinder.setMovements(new Movements(this.bot));
+      this.loadRuntimePlugins();
+      this.bot.pathfinder?.setMovements(new Movements(this.bot));
 
       const delay = this.config.connection.spawnReadyDelayMs || 0;
       if (delay > 0) {
@@ -50,8 +76,8 @@ class BotManager {
       await this.installModules();
       this.startScheduledCommands();
       logger.info('任务队列已就绪，使用控制台命令 start 或聊天命令 !bot start 开始执行。');
+      logger.info('矿道控制: !bot startmine / !bot stopmine / !bot setmine <宽> <高>');
     });
-
 
     this.bot.on('messagestr', (message, position, _jsonMsg, sender) => {
       const from = sender || 'server';
@@ -60,6 +86,7 @@ class BotManager {
     this.bot.on('whisper', (username, message) => {
       logger.info(`[WHISPER] ${username}: ${message}`);
     });
+
     this.bot.on('health', () => this.handleSafety());
     this.bot.on('kicked', (reason) => logger.warn('被踢出:', reason));
     this.bot.on('error', (err) => logger.error('Bot错误:', err.message));
